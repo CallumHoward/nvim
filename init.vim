@@ -1,19 +1,16 @@
 "dein Scripts-----------------------------
-set runtimepath^=/Users/callumhoward/.dein//repos/github.com/Shougo/dein.vim
-
+set runtimepath^=/Users/callumhoward/.dein/repos/github.com/Shougo/dein.vim
 call dein#begin(expand('/Users/callumhoward/.dein/'))
 
 " Add or remove plugins here:
-call dein#add('Shougo/dein.vim')
-call dein#add('Shougo/neosnippet.vim')
-call dein#add('CallumHoward/neosnippet-snippets')
-call dein#add('Shougo/deoplete.nvim')
-"call dein#add('zchee/deoplete-jedi', {'on_ft': 'python'})
-"call dein#add('zchee/deoplete-clang', {'on_ft': ['c', 'cpp']})
-call dein#add('neomake/neomake')
-call dein#add('airblade/vim-gitgutter')
-"call dein#add('tobiasgehring/ShowMarks')
-call dein#add('CallumHoward/vim-neodark')
+call dein#add('Shougo/dein.vim')                    " plugin manager
+call dein#add('Shougo/neosnippet.vim')              " snippet expansion
+call dein#add('CallumHoward/neosnippet-snippets')   " snippet collection
+call dein#add('Shougo/deoplete.nvim')               " auto popup
+call dein#add('neomake/neomake')                    " syntax checker
+call dein#add('airblade/vim-gitgutter')             " line git status
+call dein#add('kshenoy/vim-signature')              " marks in signs column
+call dein#add('CallumHoward/vim-neodark')           " colorscheme
 
 call dein#end()
 filetype plugin indent on
@@ -23,8 +20,8 @@ colorscheme neodark
 syntax on
 
 inoremap kj <Esc>
-set number         " enable line numbers
-set list           " display hidden characters
+set number          " enable line numbers
+set list            " display hidden characters
 
 set expandtab       " expand tabs to spaces
 set shiftwidth=4    " spaces to shift when re-indenting
@@ -38,7 +35,7 @@ set pumheight=5     " maximum number of iterms in completion popup
 set ignorecase
 set smartcase
 
-set foldcolumn=0   " visual representation of folds
+set foldcolumn=0    " visual representation of folds
 set foldmethod=syntax
 set foldnestmax=1
 set nofoldenable
@@ -46,27 +43,23 @@ set nofoldenable
 nnoremap zj :<C-u>silent! normal! zc<CR>zjzo
 nnoremap zk :<C-u>silent! normal! zc<CR>zkzo[z
 
-set splitright     " Puts new vsplit windows to the right of the current
-set splitbelow     " Puts new split windows to the bottom of the current
+set splitright      " Puts new vsplit windows to the right of the current
+set splitbelow      " Puts new split windows to the bottom of the current
 
 " use tabs for makefiles
 autocmd FileType make set noexpandtab
+
+" use 2 spaces for web dev
+au BufNewFile,BufRead *.js, *.jsx, *.html, *.css, *.scss, *.less set ts=2 sts=2 sw=2
 
 " disable automatic comment insertion
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 
 " use deoplete completion
-let g:deoplete#enable_at_startup=1
+let g:deoplete#enable_at_startup = 1
 if !exists('g:deoplete#omni#input_patterns')
   let g:deoplete#omni#input_patterns = {}
 endif
-
-let g:deoplete#file#enable_buffer_path=1
-let g:deoplete#sources#jedi#enable_cache=1
-let g:deoplete#sources#jedi#show_docstring=0
-let g:deoplete#sources#clang#libclang_path="/usr/local/opt/llvm/lib/libclang.dylib"
-let g:deoplete#sources#clang#clang_header="/usr/local/opt/llvm/lib/clang"
-let g:neosnippet#snippets_directory="/Users/callumhoward/.dein/repos/github.com/CallumHoward/neosnippet-snippets/neosnippets"
 
 " Plugin key-mappings
 nmap <C-k>     i<Plug>(neosnippet_expand_or_jump)
@@ -85,38 +78,20 @@ set tags+=~/.config/nvim/systags
 autocmd Filetype * if &omnifunc == "" | setlocal omnifunc=syntaxcomplete#Complete | endif
 "au BufNewFile,BufRead,BufEnter *.cpp,*.hpp set omnifunc=omni#cpp#complete#Main
 
-" lint on save
-autocmd! BufWritePost * Neomake
-
 " relative number configuration
 autocmd FocusLost,InsertEnter,WinLeave * if &ma | :set nornu | endif
 autocmd FocusGained,InsertLeave,WinEnter * if &ma | :set rnu | endif
 autocmd FocusLost,InsertEnter,WinLeave * :set nocul
 autocmd FocusGained,InsertLeave,WinEnter * :set cul
 
-
-" Set Title
+" set Title
 autocmd BufEnter * call system("tmux rename-window " . expand("%:t"))
 
 " verticle split is just bg color
 set fillchars=fold:-
 
-" showmarks configuration
-"hi SignColumn ctermbg=none
-"let g:showmarks_textlower=" "
-"let g:showmarks_textupper=" "
-"let g:showmarks_textother=" "
-"let g:showmarks_include="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'`^<>[]\""
-"
-"hi ShowMarksHLl ctermfg=14 ctermbg=none
-"hi ShowMarksHLu ctermfg=14 ctermbg=none
-"hi ShowMarksHLo ctermfg=11 ctermbg=none
-"hi ShowMarksHLm ctermfg=14 ctermbg=none
-"
-"autocmd BufEnter * ShowMarksOn
-set updatetime=500
-
 " gitgutter config
+set updatetime=500
 hi GitGutterAdd ctermfg=2
 hi GitGutterChange ctermfg=3
 hi GitGutterDelete ctermfg=160 cterm=bold
@@ -125,6 +100,22 @@ let g:gitgutter_sign_added = '│'
 let g:gitgutter_sign_modified = '│'
 let g:gitgutter_sign_removed =  '.'
 let g:gitgutter_sign_modified_removed = '│'
+
+" signature config
+let g:SignatureMap = {'Leader' : "m"}                 " disable extra mappings
+let g:SignatureMarkTextHLDynamic = 1    " keep gitgutter highlight color
+let g:SignatureForceMarkPlacement = 1   " use :delm x to delete mark x
+let g:SignatureMarkTextHL = "ErrorMsg"
+
+" neomake config
+autocmd! BufWritePost * Neomake         " lint on save
+hi NeomakeErrorSign ctermfg=15 ctermbg=1
+hi NeomakeWarningSign ctermfg=15 ctermbg=9
+let g:neomake_error_sign = {'text': '-!', 'texthl': 'NeomakeErrorSign'}
+let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
+"let g:neomake_cpp_enable_markers=['clang']
+let g:neomake_cpp_clang_args = ["-std=c++14", "-Wextra", "-Wall", "-Wno-unused-parameter", "-fsanitize=undefined", "-g"]
+
 
 " netrw filebrowser config
 let g:netrw_winsize = -28               " absolute width of netrw window
