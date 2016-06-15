@@ -30,8 +30,9 @@ set tabstop=4       " number of spaces to insert when tab is pressed
 set softtabstop=4   " backspace deletes indent
 set smartindent     " indent based on filetype
 set nowrap          " don't wrap text
-autocmd FileType make set noexpandtab  " use tabs for makefiles
-autocmd BufNewFile,BufRead javascript,html,css,scss,less set ts=2 sts=2 sw=2
+autocmd FileType make setlocal noexpandtab  " use tabs for makefiles
+"autocmd FileType markdown,plaintex,txt setlocal wrap linebreak nolist nonu nornu nocul  " softwrap plain text
+autocmd FileType javascript,html,css,scss,less setlocal ts=2 sts=2 sw=2
 
 set pumheight=5     " maximum number of iterms in completion popup
 
@@ -39,7 +40,7 @@ set ignorecase      " for search patterns
 set smartcase       " don't ignore case if capital is used
 
 set undofile        " undo persists after closing file
-set backup          " backup files
+"set backup          " backup files
 
 set splitright      " puts new vsplit windows to the right of the current
 set splitbelow      " puts new split windows to the bottom of the current
@@ -53,6 +54,8 @@ set foldnestmax=1
 set nofoldenable
 autocmd FileType python set foldmethod=indent
 autocmd FileType java set foldnestmax=2
+let g:php_folding=1
+let g:php_sql_query=1
 
 " disable automatic comment insertion
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
@@ -60,15 +63,18 @@ autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 " set title for tmux
 autocmd BufEnter * call system("tmux rename-window " . expand("%:t"))
 
-" fold mappings
+" movement mappings
+nnoremap j gj
+nnoremap k gk
 nnoremap zj :<C-u>silent! normal! zc<CR>zjzozz
 nnoremap zk :<C-u>silent! normal! zc<CR>zkzo[zzz
+inoremap {<CR> {<CR>}<Esc>O
 
 " relative number configuration
-autocmd FocusLost,InsertEnter,WinLeave * if &ma | :set nornu | endif
-autocmd FocusGained,InsertLeave,WinEnter * if &ma | :set rnu | endif
-autocmd FocusLost,InsertEnter,WinLeave * :set nocul
-autocmd FocusGained,InsertLeave,WinEnter * :set cul
+autocmd FocusLost,InsertEnter,WinLeave ?* if &ma | :set nornu | endif
+autocmd FocusGained,InsertLeave,WinEnter ?* if &ma | :set rnu | endif
+autocmd FocusLost,InsertEnter,WinLeave ?* :set nocul
+autocmd FocusGained,InsertLeave,WinEnter ?* :set cul
 
 " netrw filebrowser config
 let g:netrw_winsize = -28               " absolute width of netrw window
@@ -78,11 +84,18 @@ let g:netrw_sort_sequence = '[\/]$,*'   " sort is affecting only: directories on
 let g:netrw_browse_split = 4            " use the previous window to open file
 
 " automatically save and load views
-au BufWinLeave * mkview
-au BufWinEnter * silent! loadview
+au BufWinLeave ?* mkview
+au BufWinEnter ?* silent! loadview
 
 " enable omnicompletion
 set tags+=~/.config/nvim/systags
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+autocmd FileType ruby setlocal omnifunc=rubycomplete#Complete
+autocmd FileType haskell setlocal omnifunc=necoghc#omnifunc
 autocmd Filetype * if &omnifunc == "" | setlocal omnifunc=syntaxcomplete#Complete | endif
 
 " use deoplete completion
