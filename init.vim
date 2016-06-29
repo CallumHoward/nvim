@@ -10,6 +10,8 @@ call dein#add('CallumHoward/neosnippet-snippets')   " snippet collection
 call dein#add('neomake/neomake')                    " syntax checker
 call dein#add('airblade/vim-gitgutter')             " line git status
 call dein#add('kshenoy/vim-signature')              " marks in signs column
+call dein#add('Konfekt/FastFold')                   " don't unfold in insert
+call dein#add('takac/vim-hardtime')                 " disable rapid hjkl repeat
 call dein#add('CallumHoward/vim-neodark')           " colorscheme
 
 call dein#end()
@@ -23,6 +25,7 @@ syntax on
 inoremap kj <Esc>
 set number          " enable line numbers
 set list            " display hidden characters
+set shortmess+=I    " disable splash screen message
 
 set expandtab       " expand tabs to spaces
 set shiftwidth=4    " spaces to shift when re-indenting
@@ -52,8 +55,8 @@ set foldcolumn=0    " visual representation of folds
 set foldmethod=syntax
 set foldnestmax=1
 set nofoldenable
-autocmd FileType python set foldmethod=indent
-autocmd FileType java set foldnestmax=2
+autocmd FileType python setlocal foldmethod=indent
+autocmd FileType java setlocal foldnestmax=2
 let g:php_folding=1
 let g:php_sql_query=1
 
@@ -139,3 +142,9 @@ let g:neomake_error_sign = {'text': '-!', 'texthl': 'NeomakeErrorSign'}
 let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
 let g:neomake_cpp_enable_markers=['clang']
 let g:neomake_cpp_clang_args = ["-std=c++14", "-Wextra", "-Wall", "-Wno-unused-parameter", "-g"]
+
+" hardtime on
+let g:hardtime_default_on = 1
+let g:hardtime_allow_different_key = 1
+let g:hardtime_maxcount = 2
+let g:hardtime_showmsg = 1
