@@ -128,11 +128,15 @@ let g:SignatureMarkTextHL = 'ErrorMsg'
 
 " neomake config
 autocmd! BufWritePost * Neomake         " lint on save
-hi NeomakeErrorSign ctermfg=15 ctermbg=1
-hi NeomakeWarningSign ctermfg=15 ctermbg=9
+hi NeomakeErrorSign ctermfg=1 ctermbg=none
+hi NeomakeWarningSign ctermfg=9 ctermbg=none
+hi NeomakeInfoSign ctermfg=5 ctermbg=none
+hi NeomakeMessageSign ctermfg=5 ctermbg=none
 let g:neomake_error_sign = {'text': '-!', 'texthl': 'NeomakeErrorSign'}
 let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
-let g:neomake_cpp_enable_markers=['clang']
+let g:neomake_informational_sign = {'text': '-i', 'texthl': 'NeomakeInfoSign'}
+let g:neomake_message_sign = {'text': '->', 'texthl': 'NeomakeMessageSign'}
+let g:neomake_cpp_enable_makers = ['clang']
 let g:neomake_cpp_clang_args = ['-std=c++14', '-Wextra', '-Wall', '-Wno-unused-parameter', '-g']
 
 " hardtime on
