@@ -4,7 +4,7 @@ call dein#begin(expand('/Users/callumhoward/.dein/'))
 
 " Add or remove plugins here:
 call dein#add('Shougo/dein.vim')                    " plugin manager
-call dein#add('Shougo/deoplete.nvim')               " auto popup
+call dein#add('Shougo/deoplete.nvim')               " auto popup completion
 call dein#add('Shougo/neosnippet.vim')              " snippet expansion
 call dein#add('CallumHoward/neosnippet-snippets')   " snippet collection
 call dein#add('neomake/neomake')                    " syntax checker
@@ -14,6 +14,7 @@ call dein#add('Konfekt/FastFold')                   " don't unfold in insert
 call dein#add('tpope/vim-rsi')                      " enable readline key mappings
 call dein#add('takac/vim-hardtime')                 " disable rapid hjkl repeat
 call dein#add('CallumHoward/vim-neodark')           " colorscheme
+call dein#add('rhysd/vim-clang-format', {'on_ft': ['c', 'cpp']})
 
 call dein#end()
 filetype plugin indent on
@@ -61,11 +62,14 @@ autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 " set title for tmux
 autocmd BufEnter * call system('tmux rename-window ' . expand('%:t'))
 
+" update diff on write NOTE: doesn't appear to work
+autocmd BufWritePost * if &diff == 1 | diffupdate | endif
+
 " movement mappings
 nnoremap j gj
 nnoremap k gk
-nnoremap zj :<C-u>silent! normal! zc<CR>zjzozz
-nnoremap zk :<C-u>silent! normal! zc<CR>zkzo[zzz
+nnoremap z] :<C-u>silent! normal! zc<CR>zjzozz
+nnoremap z[ :<C-u>silent! normal! zc<CR>zkzo[zzz
 inoremap {<CR> {<CR>}<Esc>O
 
 " relative number configuration
@@ -117,7 +121,6 @@ let g:gitgutter_sign_removed =  '.'
 let g:gitgutter_sign_removed_first_line =  '˙'
 let g:gitgutter_sign_modified_removed = '│'
 let g:gitgutter_override_sign_column_highlight = 0
-let g:gitgutter_sign_column_always = 1
 let g:gitgutter_map_keys = 0
 
 " signature config
@@ -125,6 +128,26 @@ let g:SignatureMap = {'Leader' : 'm'}   " disable extra mappings
 let g:SignatureMarkTextHLDynamic = 1    " keep gitgutter highlight color
 let g:SignatureForceMarkPlacement = 1   " use :delm x to delete mark x
 let g:SignatureMarkTextHL = 'ErrorMsg'
+
+" vim-clang-format config
+let g:clang_format#command = '/usr/local/Cellar/llvm/3.8.1/bin/clang-format'
+let g:clang_format#code_style = "llvm"
+let g:clang_format#auto_formatexpr = 1
+let g:clang_format#style_options = {
+        \ "AccessModifierOffset" : -4,
+        \ "AlignAfterOpenBracket" : "DontAlign",
+        \ "AlignOperands" : "false",
+        \ "AllowShortBlocksOnASingleLine" : "true",
+        \ "AllowShortCaseLabelsOnASingleLine" : "true",
+        \ "AllowShortFunctionsOnASingleLine" : "true",
+        \ "AllowShortIfStatementsOnASingleLine" : "true",
+        \ "AllowShortLoopsOnASingleLine" : "true",
+        \ "ConstructorInitializerIndentWidth" : "8",
+        \ "ContinuationIndentWidth" : "8",
+        \ "IndentWidth" : "4",
+        \ "SpacesBeforeTrailingComments" : "2",
+        \ "Standard" : "C++11",
+        \ "TabWidth" : "4"}
 
 " neomake config
 autocmd! BufWritePost * Neomake         " lint on save
@@ -134,9 +157,9 @@ hi NeomakeInfoSign ctermfg=5 ctermbg=none
 hi NeomakeMessageSign ctermfg=5 ctermbg=none
 let g:neomake_error_sign = {'text': '-!', 'texthl': 'NeomakeErrorSign'}
 let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
-let g:neomake_informational_sign = {'text': '-i', 'texthl': 'NeomakeInfoSign'}
+let g:neomake_info_sign = {'text': '-i', 'texthl': 'NeomakeInfoSign'}
 let g:neomake_message_sign = {'text': '->', 'texthl': 'NeomakeMessageSign'}
-let g:neomake_cpp_enable_makers = ['clang']
+let g:neomake_cpp_enable_makers = ['clang', 'clangtidy']
 let g:neomake_cpp_clang_args = ['-std=c++14', '-Wextra', '-Wall', '-Wno-unused-parameter', '-g']
 
 " hardtime on
