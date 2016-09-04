@@ -159,7 +159,8 @@ let g:neomake_error_sign = {'text': '-!', 'texthl': 'NeomakeErrorSign'}
 let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
 let g:neomake_info_sign = {'text': '-i', 'texthl': 'NeomakeInfoSign'}
 let g:neomake_message_sign = {'text': '->', 'texthl': 'NeomakeMessageSign'}
-let g:neomake_cpp_enable_makers = ['clang', 'clangtidy']
+let g:neomake_cpp_enabled_makers = ['clang', 'clangtidy']
+let g:neomake_cpp_clangtidy_args = ['-extra-arg=-std=c++14', '-checks=\*']
 let g:neomake_cpp_clang_args = ['-std=c++14', '-Wextra', '-Wall', '-Wno-unused-parameter', '-g']
 
 " hardtime on
