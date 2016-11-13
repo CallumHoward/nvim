@@ -4,38 +4,54 @@ call dein#begin(expand('/Users/callumhoward/.dein/'))
 
 " Add or remove plugins here:
 call dein#add('Shougo/dein.vim')                    " plugin manager
+call dein#add('haya14busa/dein-command.vim')        " dein bindings
+
+" completion activation events
+let s:ces = ['InsertEnter', 'FocusLost', 'CursorHold']
 
 " completion plugins
-call dein#add('Shougo/neosnippet.vim')              " snippet expansion
-call dein#add('CallumHoward/neosnippet-snippets')   " snippet collection
-call dein#add('Shougo/deoplete.nvim')               " auto popup completion
-call dein#add('wellle/tmux-complete.vim')           " tmux window completion source
-"call dein#add('zchee/deoplete-clang', {'on_ft': ['c', 'cpp']})
+call dein#add('Shougo/neosnippet.vim',
+            \ {'on_event': s:ces})                  " snippet expansion
+call dein#add('CallumHoward/neosnippet-snippets',
+            \ {'on_event': s:ces})                  " snippet collection
+call dein#add('Shougo/echodoc.vim',
+            \ {'on_event': s:ces})                  " function signatures in status
+call dein#add('Shougo/deoplete.nvim',
+            \ {'on_event': s:ces})                  " auto popup completion
+call dein#add('wellle/tmux-complete.vim',
+            \ {'on_event': s:ces})                  " tmux window completion source
+call dein#add('Shougo/neco-vim', {'on_ft': 'vim'})
+"call dein#add('zchee/deoplete-jedi', {'on_ft': 'python'})
+call dein#add('zchee/deoplete-clang', {'on_ft': ['c', 'cpp']})
+"call dein#add('carlitux/deoplete-ternjs', {'on_ft': 'javascript'})
 
 " feature plugins
-call dein#add('neomake/neomake')                    " syntax checker
+call dein#add('neomake/neomake')
+"            \ {'on_event': ['BufWritePre', 'FocusLost', 'CursorHold']})
 call dein#add('airblade/vim-gitgutter')             " line git status
 call dein#add('kshenoy/vim-signature')              " marks in signs column
-call dein#add('Konfekt/FastFold')                   " don't unfold in insert
 call dein#add('ludovicchabant/vim-gutentags')       " automatic tagfile generation
-call dein#add('lambdalisue/vim-gita', {'on_cmd': 'Gita'})
-call dein#add('rhysd/vim-clang-format', {'on_ft': ['c', 'cpp']})
+call dein#add('lambdalisue/vim-gita',               {'on_cmd': 'Gita'})
+call dein#add('rhysd/vim-clang-format',             {'on_ft': ['c', 'cpp']})
+call dein#add('valloric/MatchTagAlways',            {'on_ft': 'html'})
+call dein#add('amirh/HTML-AutoCloseTag',            {'on_ft': 'html'})
+"call dein#add('Konfekt/FastFold')                   " don't unfold in insert
 
 " keybindings
-call dein#add('tpope/vim-rsi')                      " enable readline key mappings
+call dein#add('tpope/vim-rsi', {'on_event': s:ces}) " enable readline key mappings
 call dein#add('takac/vim-hardtime')                 " disable rapid hjkl repeat
 
 " colorschemes
-call dein#add('CallumHoward/vim-neodark')           " colorscheme
-call dein#add('roosta/vim-srcery')                  " colorscheme
-call dein#add('neovimhaskell/haskell-vim', {'on_ft': ['haskell']})
-call dein#add('octol/vim-cpp-enhanced-highlight', {'on_ft': ['c', 'cpp']})
-let g:cpp_experimental_template_highlight = 1
-let g:cpp_class_scope_highlight = 1
+call dein#add('CallumHoward/vim-neodark')
+call dein#add('roosta/vim-srcery')
 
 " syntax plugins
-call dein#add('sophacles/vim-processing')           " processing syntax
-call dein#add('wavded/vim-stylus')                  " stylus syntax
+call dein#add('sophacles/vim-processing',           {'on_ft': 'processing'})
+call dein#add('wavded/vim-stylus',                  {'on_ft': 'stylus'})
+call dein#add('neovimhaskell/haskell-vim',          {'on_ft': 'haskell'})
+call dein#add('octol/vim-cpp-enhanced-highlight',   {'on_ft': ['c', 'cpp']})
+let g:cpp_experimental_template_highlight = 1
+let g:cpp_class_scope_highlight = 1
 
 call dein#end()
 filetype plugin indent on
@@ -45,6 +61,8 @@ let g:dein#install_log_filename = '/Users/callumhoward/.dein/dein_install.log'
 " base configuration
 colorscheme neodark
 syntax on
+
+language en_AU
 
 inoremap kj <Esc>
 set number          " enable line numbers
@@ -71,6 +89,8 @@ set undofile        " undo persists after closing file
 set splitright      " puts new vsplit windows to the right of the current
 set splitbelow      " puts new split windows to the bottom of the current
 
+set icm=nosplit     " live preview for substitution
+
 " dynamic cursor shape in supported terminals NOTE: can cause strange characters to be printed
 "let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 
@@ -95,13 +115,27 @@ autocmd BufWritePost * if &diff == 1 | diffupdate | endif
 " set files with .tem extension as C++ Template files
 autocmd BufNewFile,BufFilePre,BufRead *.tem setlocal filetype=cpp
 
-" movement mappings
+"set lazyredraw
+"autocmd VimResized,FocusGained * redraw
+
+" wrapped line movement mappings
 nnoremap j gj
 nnoremap k gk
-nnoremap # #N
-nnoremap z] :<C-u>silent! normal! zc<CR>zjzozz
-nnoremap z[ :<C-u>silent! normal! zc<CR>zkzo[zzz
+
+" prevent jump after searching word under cursor with # and *, clear with Escape
+nnoremap <silent> # :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>w?<CR>
+nnoremap <silent> * :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>
+nnoremap <silent> <Esc> :noh<CR>
+
+" accordion expand traversal of folds
+nnoremap <silent> z] :<C-u>silent! normal! zc<CR>zjzozz
+nnoremap <silent> z[ :<C-u>silent! normal! zc<CR>zkzo[zzz
+
+" insert closing curly brace
 inoremap {<CR> {<CR>}<Esc>O
+
+" don't close split when deleting a buffer
+command Bd bp\|bd #
 
 " relative number configuration
 autocmd FocusLost,InsertEnter,WinLeave ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nornu | endif
@@ -115,10 +149,20 @@ let g:netrw_banner = 0                  " do not display info on the top of wind
 let g:netrw_liststyle = 3               " tree-view
 let g:netrw_sort_sequence = '[\/]$,*'   " sort so directories on the top, files below
 let g:netrw_browse_split = 4            " use the previous window to open file
+let g:netrw_hide = 1                    " don't show hidden files (use gh to toggle)
+nnoremap <silent> <Leader>\ :Lex<CR>
+cabbrev cd. cd %:p:h
 
 " automatically save and load views
 au BufWinLeave ?* mkview!
 au BufWinEnter ?* silent! loadview
+
+" use Ag for grep if available
+if executable('ag') | set grepprg=ag\ --nogroup\ --nocolor | endif
+command! -nargs=+ -complete=file -bar Ag silent! grep! <args>|cwindow|redraw!|let @/="<args>"|set hls
+
+" browse most recently opened files with :O
+cabbrev O browse oldfiles
 
 " enable omnicompletion
 set tags+=~/.config/nvim/systags
@@ -126,12 +170,10 @@ autocmd Filetype * if &omnifunc == '' | setlocal omnifunc=syntaxcomplete#Complet
 
 " use deoplete completion
 let g:deoplete#enable_at_startup = 1
-if !exists('g:deoplete#omni#input_patterns')
-  let g:deoplete#omni#input_patterns = {}
-endif
+if !exists('g:deoplete#omni#input_patterns') | let g:deoplete#omni#input_patterns = {} | endif
 let g:deoplete#sources = {}
-let g:deoplete#sources._ = ['tag', 'member', 'file', 'omni', 'buffer', 'tmux-complete']
-let g:deoplete#auto_complete_start_length = 0
+"let g:deoplete#sources._ = ['tag', 'member', 'file', 'omni', 'buffer', 'tmux-complete']
+"let g:deoplete#auto_complete_start_length = 0
 
 " gutentags config
 let g:gutentags_cache_dir = '~/.local/share/nvim/tags/'
@@ -143,8 +185,16 @@ smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)
 
 " SuperTab like snippets behavior
+let g:neosnippet#expand_word_boundary = 1
 imap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 smap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
+" conceal neosnippet markers
+set conceallevel=2
+set concealcursor=niv
+
+" allow automatic function signature expansion
+let g:neosnippet#enable_completed_snippet=1
 
 " gitgutter config
 set updatetime=500
@@ -158,7 +208,7 @@ let g:gitgutter_sign_removed =  '.'
 let g:gitgutter_sign_removed_first_line =  '˙'
 let g:gitgutter_sign_modified_removed = '│'
 let g:gitgutter_override_sign_column_highlight = 0
-"let g:gitgutter_map_keys = 0
+let g:gitgutter_map_keys = 0
 
 " signature config
 let g:SignatureMap = {'Leader' : 'm'}   " disable extra mappings
@@ -206,6 +256,14 @@ let g:neomake_haskell_enabled_makers = ['hlint', 'ghcmod']
 let g:deoplete#sources#clang#libclang_path = '/usr/local/Cellar/llvm/3.8.1/lib/libclang.dylib'
 let g:deoplete#sources#clang#clang_header = '/usr/local/Cellar/llvm/3.8.1/lib/clang'
 let g:deoplete#sources#clang#std = {'c': 'c11', 'cpp': 'c++14', 'objc': 'c11', 'objcpp': 'c++1z'}
+
+" echodoc config
+let g:echodoc_enable_at_startup = 1
+set shortmess+=c            " don't show completion number in status
+set completeopt-=preview    " don't open preview window when completing
+set noshowmode              " disable status mode indicator and replace with a fake
+autocmd InsertEnter * echohl ModeMSG | echo "-- INSERT --" | echohl None
+autocmd InsertLeave * echo ""
 
 " hardtime on
 let g:hardtime_default_on = 1
