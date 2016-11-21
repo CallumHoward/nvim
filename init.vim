@@ -32,10 +32,10 @@ call dein#add('airblade/vim-gitgutter')             " line git status
 call dein#add('kshenoy/vim-signature')              " marks in signs column
 call dein#add('ludovicchabant/vim-gutentags')       " automatic tagfile generation
 call dein#add('lambdalisue/vim-gita',               {'on_cmd': 'Gita'})
+call dein#add('majutsushi/tagbar',                  {'on_cmd': 'TagbarToggle'})
 call dein#add('rhysd/vim-clang-format',             {'on_ft': ['c', 'cpp']})
 call dein#add('valloric/MatchTagAlways',            {'on_ft': 'html'})
 call dein#add('amirh/HTML-AutoCloseTag',            {'on_ft': 'html'})
-"call dein#add('Konfekt/FastFold')                   " don't unfold in insert
 
 " keybindings
 call dein#add('tpope/vim-rsi', {'on_event': s:ces}) " enable readline key mappings
@@ -127,6 +127,26 @@ nnoremap <silent> # :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>w?<C
 nnoremap <silent> * :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>
 nnoremap <silent> <Esc> :noh<CR>
 
+" unimpaired quickfix mappings
+nnoremap <silent> <leader>q :cw<CR>
+nnoremap <silent> [q :cprevious<CR>
+nnoremap <silent> ]q :cnext<CR>
+nnoremap <silent> [Q :cfirst<CR>
+nnoremap <silent> ]Q :clast<CR>
+
+" unimpaired location list mappings
+nnoremap <silent> <leader>l :lw<CR>
+nnoremap <silent> [l :lprevious<CR>zmzv
+nnoremap <silent> ]l :lnext<CR>zmzv
+nnoremap <silent> [L :lfirst<CR>
+nnoremap <silent> ]L :llast<CR>
+
+" unimpaired buffer mappings
+nnoremap <silent> [b :bprevious<CR>
+nnoremap <silent> ]b :bnext<CR>
+nnoremap <silent> [B :bfist<CR>
+nnoremap <silent> ]B :blast<CR>
+
 " accordion expand traversal of folds
 nnoremap <silent> z] :<C-u>silent! normal! zc<CR>zjzozz
 nnoremap <silent> z[ :<C-u>silent! normal! zc<CR>zkzo[zzz
@@ -188,6 +208,7 @@ xmap <C-k>     <Plug>(neosnippet_expand_target)
 let g:neosnippet#expand_word_boundary = 1
 imap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : pumvisible() ? "\<C-n>" : "\<TAB>"
 smap <expr><TAB> neosnippet#expandable_or_jumpable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+xmap <TAB> <Plug>(neosnippet_expand_target)
 
 " conceal neosnippet markers
 set conceallevel=2
@@ -248,14 +269,15 @@ let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
 let g:neomake_info_sign = {'text': '-i', 'texthl': 'NeomakeInfoSign'}
 let g:neomake_message_sign = {'text': '->', 'texthl': 'NeomakeMessageSign'}
 let g:neomake_cpp_enabled_makers = ['clang', 'clangtidy']
-let g:neomake_cpp_clangtidy_args = ['-extra-arg=-std=c++14', '-checks=\*']
-let g:neomake_cpp_clang_args = ['-std=c++14', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-Wno-c++98-compat', '-g']
+let g:neomake_cpp_clangtidy_args = ['-extra-arg=-std=c++14 -I /usr/local/opt/boost/include', '-checks=\*']
+let g:neomake_cpp_clang_args = ['-std=c++14', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-Wno-c++98-compat', '-g', '-I /usr/local/opt/boost/include']
 let g:neomake_haskell_enabled_makers = ['hlint', 'ghcmod']
 
 " deoplete-clang config
-let g:deoplete#sources#clang#libclang_path = '/usr/local/Cellar/llvm/3.8.1/lib/libclang.dylib'
-let g:deoplete#sources#clang#clang_header = '/usr/local/Cellar/llvm/3.8.1/lib/clang'
+let g:deoplete#sources#clang#libclang_path = '/usr/local/opt/llvm/lib/libclang.dylib'
+let g:deoplete#sources#clang#clang_header = '/usr/local/opt/llvm/lib/clang'
 let g:deoplete#sources#clang#std = {'c': 'c11', 'cpp': 'c++14', 'objc': 'c11', 'objcpp': 'c++1z'}
+let g:deoplete#sources#clang#flags = ['-I /usr/local/opt/boost/include']
 
 " echodoc config
 let g:echodoc_enable_at_startup = 1
@@ -264,6 +286,10 @@ set completeopt-=preview    " don't open preview window when completing
 set noshowmode              " disable status mode indicator and replace with a fake
 autocmd InsertEnter * echohl ModeMSG | echo "-- INSERT --" | echohl None
 autocmd InsertLeave * echo ""
+
+" tagbar config
+let g:tagbar_iconchars = ['+', '-']
+let g:tagbar_compact = 1
 
 " hardtime on
 let g:hardtime_default_on = 1
