@@ -21,8 +21,9 @@ call dein#add('Shougo/deoplete.nvim',
 call dein#add('wellle/tmux-complete.vim',
             \ {'on_event': s:ces})                  " tmux window completion source
 call dein#add('Shougo/neco-vim', {'on_ft': 'vim'})
-"call dein#add('zchee/deoplete-jedi', {'on_ft': 'python'})
-call dein#add('zchee/deoplete-clang', {'on_ft': ['c', 'cpp']})
+call dein#add('zchee/deoplete-jedi', {'on_ft': 'python'})
+call dein#add('artur-shaik/vim-javacomplete2', {'on_ft': 'java'})
+call dein#add('zchee/deoplete-clang') " can't be lazy
 "call dein#add('carlitux/deoplete-ternjs', {'on_ft': 'javascript'})
 
 " feature plugins
@@ -31,11 +32,17 @@ call dein#add('neomake/neomake')
 call dein#add('airblade/vim-gitgutter')             " line git status
 call dein#add('kshenoy/vim-signature')              " marks in signs column
 call dein#add('ludovicchabant/vim-gutentags')       " automatic tagfile generation
-call dein#add('lambdalisue/vim-gita',               {'on_cmd': 'Gita'})
+"call dein#add('lambdalisue/gina.vim',               {'on_cmd': 'Gina'})
 call dein#add('majutsushi/tagbar',                  {'on_cmd': 'TagbarToggle'})
 call dein#add('rhysd/vim-clang-format',             {'on_ft': ['c', 'cpp']})
+call dein#add('alepez/vim-llvmcov',                 {'on_ft': ['c', 'cpp']})
 call dein#add('valloric/MatchTagAlways',            {'on_ft': 'html'})
-call dein#add('amirh/HTML-AutoCloseTag',            {'on_ft': 'html'})
+call dein#add('amirh/HTML-AutoCloseTag')            " can't be lazy
+call dein#add('lotabout/skim',                      {'build': './install --all', 'merged': 0})
+call dein#add('lotabout/skim.vim',                  {'depends': 'skim'})
+call dein#add('tpope/vim-abolish')                  " deal with word variants
+"call dein#add('cloudhead/neovim-fuzzy')
+"call dein#add('yuttie/comfortable-motion.vim')
 
 " keybindings
 call dein#add('tpope/vim-rsi', {'on_event': s:ces}) " enable readline key mappings
@@ -43,13 +50,17 @@ call dein#add('takac/vim-hardtime')                 " disable rapid hjkl repeat
 
 " colorschemes
 call dein#add('CallumHoward/vim-neodark')
-call dein#add('roosta/vim-srcery')
+call dein#add('cocopon/iceberg.vim')
+call dein#add('mhartington/oceanic-next')
+call dein#add('w0ng/vim-hybrid')
 
 " syntax plugins
+call dein#add('rust-lang/rust.vim')
 call dein#add('sophacles/vim-processing',           {'on_ft': 'processing'})
-call dein#add('wavded/vim-stylus',                  {'on_ft': 'stylus'})
-call dein#add('neovimhaskell/haskell-vim',          {'on_ft': 'haskell'})
-call dein#add('octol/vim-cpp-enhanced-highlight',   {'on_ft': ['c', 'cpp']})
+call dein#add('wavded/vim-stylus')                  " can't be lazy
+call dein#add('neovimhaskell/haskell-vim')          " can't be lazy
+"call dein#add('octol/vim-cpp-enhanced-highlight')   " can't be lazy
+call dein#add('arakashic/chromatica.nvim')   " can't be lazy
 let g:cpp_experimental_template_highlight = 1
 let g:cpp_class_scope_highlight = 1
 
@@ -59,8 +70,9 @@ let g:dein#install_log_filename = '/Users/callumhoward/.dein/dein_install.log'
 " ==== end dein Scripts ====
 
 " base configuration
-colorscheme neodark
+if exists("neovim_dot_app") | colo OceanicNext | else | colo neodark | endif
 syntax on
+set mouse=a
 
 language en_AU
 
@@ -68,6 +80,8 @@ inoremap kj <Esc>
 set number          " enable line numbers
 set list            " display hidden characters
 set shortmess+=I    " disable splash screen message
+set noshowcmd
+set noruler
 
 set expandtab       " expand tabs to spaces
 set shiftwidth=4    " spaces to shift when re-indenting
@@ -75,8 +89,13 @@ set tabstop=4       " number of spaces to insert when tab is pressed
 set softtabstop=4   " backspace deletes indent
 set smartindent     " indent based on filetype
 set nowrap          " don't wrap text
+set linebreak       " wrap long lines at characters in 'breakat'
+set breakindent     " wrapped text is indented
+set briopt=sbr,shift:8,min:20
+let &showbreak='↳ '
+let &breakat=' ^I,{'
 
-set pumheight=5     " maximum number of iterms in completion popup
+set pumheight=5     " maximum number of items in completion popup
 
 set ignorecase      " for search patterns
 set smartcase       " don't ignore case if capital is used
@@ -91,8 +110,9 @@ set splitbelow      " puts new split windows to the bottom of the current
 
 set icm=nosplit     " live preview for substitution
 
-" dynamic cursor shape in supported terminals NOTE: can cause strange characters to be printed
-"let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
+" smoother scrolling
+"map <ScrollWheelDown> <C-E>
+"map <ScrollWheelUp> <C-Y>
 
 set fcs=fold:-      " verticle split is just bg color
 set foldcolumn=0    " visual representation of folds
@@ -107,7 +127,10 @@ autocmd FilterWritePre * if &diff | set fdc=0 | endif
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 
 " set title for tmux
-autocmd WinEnter,FocusGained * call system('tmux rename-window ' . expand('%:t'))
+autocmd WinEnter,BufWinEnter,FocusGained * call system('tmux rename-window ' . expand('%:t'))
+
+" check for and load file changes
+autocmd WinEnter,BufWinEnter,FocusGained * checktime
 
 " update diff on write NOTE: doesn't appear to work
 autocmd BufWritePost * if &diff == 1 | diffupdate | endif
@@ -119,12 +142,16 @@ autocmd BufNewFile,BufFilePre,BufRead *.tem setlocal filetype=cpp
 "autocmd VimResized,FocusGained * redraw
 
 " wrapped line movement mappings
-nnoremap j gj
-nnoremap k gk
+nnoremap <expr> j v:count ? 'j' : 'gj'
+nnoremap <expr> k v:count ? 'k' : 'gk'
+
+tnoremap <C-A>o <C-\><C-N><C-W><C-W>
 
 " prevent jump after searching word under cursor with # and *, clear with Escape
-nnoremap <silent> # :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>w?<CR>
-nnoremap <silent> * :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>
+nnoremap <silent> # :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>w?<CR>
+nnoremap <silent> * :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>
+nnoremap <silent> g# :let @/ = expand('<cword>')\|set hlsearch<CR>w?<CR>
+nnoremap <silent> g* :let @/ = expand('<cword>')\|set hlsearch<CR>
 nnoremap <silent> <Esc> :noh<CR>
 
 " unimpaired quickfix mappings
@@ -135,7 +162,7 @@ nnoremap <silent> [Q :cfirst<CR>
 nnoremap <silent> ]Q :clast<CR>
 
 " unimpaired location list mappings
-nnoremap <silent> <leader>l :lw<CR>
+nnoremap <silent> <leader>l :cw<CR> :lw<CR>
 nnoremap <silent> [l :lprevious<CR>zmzv
 nnoremap <silent> ]l :lnext<CR>zmzv
 nnoremap <silent> [L :lfirst<CR>
@@ -154,14 +181,20 @@ nnoremap <silent> z[ :<C-u>silent! normal! zc<CR>zkzo[zzz
 " insert closing curly brace
 inoremap {<CR> {<CR>}<Esc>O
 
+" gita mappings
+nnoremap <silent> <leader>b :Gita browse --scheme=blame<CR>
+
+" dot command works on ranges
+xnoremap . :normal .<CR>
+
 " don't close split when deleting a buffer
 command Bd bp\|bd #
 
 " relative number configuration
 autocmd FocusLost,InsertEnter,WinLeave ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nornu | endif
 autocmd FocusGained,InsertLeave,WinEnter ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nu rnu | endif
-autocmd FocusLost,InsertEnter,WinLeave,CmdwinLeave ?* if !&wrap || &bt == 'help' | :setl nocul | endif
-autocmd FocusGained,InsertLeave,WinEnter,CmdwinEnter ?* if !&wrap || &bt == 'help'| :setl cul | endif
+autocmd FocusLost,InsertEnter,WinLeave,BufWinLeave,CmdwinLeave ?* if !&wrap || &bt == 'help' | :setl nocul | endif
+autocmd FocusGained,InsertLeave,WinEnter,BufWinEnter,CmdwinEnter ?* if !&wrap || &bt == 'help'| :setl cul | endif
 
 " netrw filebrowser config
 let g:netrw_winsize = -28               " absolute width of netrw window
@@ -170,30 +203,58 @@ let g:netrw_liststyle = 3               " tree-view
 let g:netrw_sort_sequence = '[\/]$,*'   " sort so directories on the top, files below
 let g:netrw_browse_split = 4            " use the previous window to open file
 let g:netrw_hide = 1                    " don't show hidden files (use gh to toggle)
+let g:netrw_list_hide='^\.,\.dSYM/'
 nnoremap <silent> <Leader>\ :Lex<CR>
 cabbrev cd. cd %:p:h
 
 " automatically save and load views
-au BufWinLeave ?* mkview!
-au BufWinEnter ?* silent! loadview
+"au BufWinLeave ?* mkview!
+"au BufWinEnter ?* silent! loadview
+"autocmd BufWinLeave * if expand("%") != "" | mkview | endif
+"autocmd BufWinEnter * if expand("%") != "" | loadview | endif
 
-" use Ag for grep if available
-if executable('ag') | set grepprg=ag\ --nogroup\ --nocolor | endif
-command! -nargs=+ -complete=file -bar Ag silent! grep! <args>|cwindow|redraw!|let @/="<args>"|set hls
+" shared clipboard
+"augroup sharedclipb
+"    au!
+"    autocmd FocusLost * wshada
+"    autocmd FocusGained * sleep 1 | rshada
+"augroup END
 
-" browse most recently opened files with :O
-cabbrev O browse oldfiles
+" use Ag/Rg for grep if available
+if executable('rg') | set gp=rg\ -S\ --vimgrep\ --no-heading gfm=%f:%l:%c:%m,%f:%l%m,%f\ \ %l%m|
+elseif executable('ag') | set gp=ag\ --nogroup\ --nocolor | endif
+com! -nargs=+ -complete=file -bar Rg sil! gr! <args>|cw|redr!|let @/="<args>"|set hls
+com! -nargs=+ -complete=file -bar Ag sil! gr! <args>|cw|redr!|let @/="<args>"|set hls
+
+" grep for word under cursor
+nmap <Leader># #:sil! gr! "\b<C-R><C-W>\b"<CR>:cw<CR>:redr!<CR>
+nmap <Leader>* #:sil! gr! "\b<C-R><C-W>\b"<CR>:cw<CR>:redr!<CR>
+
+" MRU command-line completion
+function! s:MRUComplete(ArgLead, CmdLine, CursorPos)
+    return filter(map(copy(v:oldfiles), 'fnamemodify(v:val, ":~:.")'), 'v:val =~ a:ArgLead')
+endfunction
+
+" browse most recently opened files with :O or :o
+command! -nargs=? -complete=customlist,<sid>MRUComplete O if empty("<args>") | :browse oldfiles | else | :e <args> | endif
+cabbrev o O
+
+" fuzzy command mappings
+cabbrev vsf vert sf
+cabbrev ef fin
 
 " enable omnicompletion
 set tags+=~/.config/nvim/systags
 autocmd Filetype * if &omnifunc == '' | setlocal omnifunc=syntaxcomplete#Complete | endif
+autocmd Filetype java setlocal omnifunc=javacomplete#Complete
 
 " use deoplete completion
 let g:deoplete#enable_at_startup = 1
 if !exists('g:deoplete#omni#input_patterns') | let g:deoplete#omni#input_patterns = {} | endif
-let g:deoplete#sources = {}
 "let g:deoplete#sources._ = ['tag', 'member', 'file', 'omni', 'buffer', 'tmux-complete']
 "let g:deoplete#auto_complete_start_length = 0
+let g:deoplete#omni_patterns = {}
+let g:deoplete#omni_patterns.java = '[^. *\t]\.\w*'
 
 " gutentags config
 let g:gutentags_cache_dir = '~/.local/share/nvim/tags/'
@@ -238,7 +299,7 @@ let g:SignatureForceMarkPlacement = 1   " use :delm x to delete mark x
 let g:SignatureMarkTextHL = 'ErrorMsg'
 
 " vim-clang-format config
-let g:clang_format#command = '/usr/local/Cellar/llvm/3.8.1/bin/clang-format'
+let g:clang_format#command = '/usr/local/opt/llvm/bin/clang-format'
 let g:clang_format#code_style = "llvm"
 let g:clang_format#auto_formatexpr = 1
 let g:clang_format#style_options = {
@@ -258,8 +319,15 @@ let g:clang_format#style_options = {
         \ "Standard" : "C++11",
         \ "TabWidth" : "4"}
 
+" Chromatica config
+let g:chromatica#libclang_path = '/usr/local/opt/llvm/lib/libclang.dylib'
+
 " neomake config
-autocmd! BufWritePost * Neomake         " lint on save
+autocmd! BufWritePost * if &ft == 'rust' | Neomake! cargo | else | Neomake | endif
+hi NeomakeError cterm=underline
+hi NeomakeWarning cterm=underline
+hi NeomakeInfo cterm=underline
+hi NeomakeMessage cterm=underline
 hi NeomakeErrorSign ctermfg=1 ctermbg=none
 hi NeomakeWarningSign ctermfg=9 ctermbg=none
 hi NeomakeInfoSign ctermfg=5 ctermbg=none
@@ -268,16 +336,21 @@ let g:neomake_error_sign = {'text': '-!', 'texthl': 'NeomakeErrorSign'}
 let g:neomake_warning_sign = {'text': '-!', 'texthl': 'NeomakeWarningSign'}
 let g:neomake_info_sign = {'text': '-i', 'texthl': 'NeomakeInfoSign'}
 let g:neomake_message_sign = {'text': '->', 'texthl': 'NeomakeMessageSign'}
+let g:neomake_c_enabled_makers = ['clang', 'clangtidy']
+let g:neomake_c_clangtidy_args = ['-extra-arg=-std=c99', '-checks=\*']
+let g:neomake_c_clang_args = ['-std=c99', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-g']
 let g:neomake_cpp_enabled_makers = ['clang', 'clangtidy']
-let g:neomake_cpp_clangtidy_args = ['-extra-arg=-std=c++14 -I /usr/local/opt/boost/include', '-checks=\*']
-let g:neomake_cpp_clang_args = ['-std=c++14', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-Wno-c++98-compat', '-g', '-I /usr/local/opt/boost/include']
+let g:neomake_cpp_clangtidy_args = ['-checks=\*', '-std=c++17',
+            \'-extra-arg=-std=c++17 -I/usr/local/opt/boost/include -I~/range-v3/include -I~/Documents/Cinder.git/include']
+let g:neomake_cpp_clang_args = ['-std=c++17', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-Wno-c++98-compat', '-g',
+            \'-I/usr/local/opt/boost/include', '-I~/Documents/Cinder.git/include', '-I~/range-v3/include']
 let g:neomake_haskell_enabled_makers = ['hlint', 'ghcmod']
 
 " deoplete-clang config
 let g:deoplete#sources#clang#libclang_path = '/usr/local/opt/llvm/lib/libclang.dylib'
 let g:deoplete#sources#clang#clang_header = '/usr/local/opt/llvm/lib/clang'
 let g:deoplete#sources#clang#std = {'c': 'c11', 'cpp': 'c++14', 'objc': 'c11', 'objcpp': 'c++1z'}
-let g:deoplete#sources#clang#flags = ['-I /usr/local/opt/boost/include']
+let g:deoplete#sources#clang#flags = ['-I/usr/local/opt/boost/include', '-I~/Documents/Cinder.git/include', '-I~/range-v3/include']
 
 " echodoc config
 let g:echodoc_enable_at_startup = 1
@@ -291,9 +364,16 @@ autocmd InsertLeave * echo ""
 let g:tagbar_iconchars = ['+', '-']
 let g:tagbar_compact = 1
 
-" hardtime on
+" EnhancedDiff config
+set diffopt+=iwhite "ignore whitespace
+
+" hardtime config
 let g:hardtime_default_on = 1
 let g:hardtime_ignore_quickfix = 1
 let g:hardtime_allow_different_key = 1
 let g:hardtime_maxcount = 2
 let g:hardtime_showmsg = 1
+
+let g:list_of_normal_keys = ["h", "j", "k", "l"]
+let g:list_of_visual_keys = ["h", "j", "k", "l"]
+let g:list_of_insert_keys = []
