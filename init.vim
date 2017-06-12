@@ -205,7 +205,7 @@ let g:netrw_browse_split = 4            " use the previous window to open file
 let g:netrw_hide = 1                    " don't show hidden files (use gh to toggle)
 let g:netrw_list_hide='^\.,\.dSYM/'
 nnoremap <silent> <Leader>\ :Lex<CR>
-cabbrev cd. cd %:p:h
+cabbrev cd. <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'cd %:p:h' : 'cd.')<CR>
 
 " automatically save and load views
 "au BufWinLeave ?* mkview!
@@ -237,11 +237,12 @@ endfunction
 
 " browse most recently opened files with :O or :o
 command! -nargs=? -complete=customlist,<sid>MRUComplete O if empty("<args>") | :browse oldfiles | else | :e <args> | endif
-cabbrev o O
+cabbrev o <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'O' : 'o')<CR>
 
 " fuzzy command mappings
-cabbrev vsf vert sf
-cabbrev ef fin
+cabbrev vf <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'vert sf' : 'vf')<CR>
+cabbrev vsf <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'vert sf' : 'vsf')<CR>
+cabbrev ef <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'fin' : 'ef')<CR>
 
 " enable omnicompletion
 set tags+=~/.config/nvim/systags
