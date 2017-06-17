@@ -12,7 +12,7 @@ let s:ces = ['InsertEnter', 'FocusLost', 'CursorHold']
 " completion plugins
 call dein#add('Shougo/neosnippet.vim',
             \ {'on_event': s:ces})                  " snippet expansion
-call dein#add('CallumHoward/neosnippet-snippets',
+call dein#add('~/neosnippet-snippets',
             \ {'on_event': s:ces})                  " snippet collection
 call dein#add('Shougo/echodoc.vim',
             \ {'on_event': s:ces})                  " function signatures in status
@@ -21,9 +21,9 @@ call dein#add('Shougo/deoplete.nvim',
 call dein#add('wellle/tmux-complete.vim',
             \ {'on_event': s:ces})                  " tmux window completion source
 call dein#add('Shougo/neco-vim', {'on_ft': 'vim'})
-call dein#add('zchee/deoplete-jedi', {'on_ft': 'python'})
-call dein#add('artur-shaik/vim-javacomplete2', {'on_ft': 'java'})
-call dein#add('zchee/deoplete-clang') " can't be lazy
+call dein#add('zchee/deoplete-jedi')                " can't be lazy
+call dein#add('artur-shaik/vim-javacomplete2',      {'on_ft': 'java'})
+call dein#add('zchee/deoplete-clang')               " can't be lazy
 "call dein#add('carlitux/deoplete-ternjs', {'on_ft': 'javascript'})
 
 " feature plugins
@@ -32,24 +32,25 @@ call dein#add('neomake/neomake')
 call dein#add('airblade/vim-gitgutter')             " line git status
 call dein#add('kshenoy/vim-signature')              " marks in signs column
 call dein#add('ludovicchabant/vim-gutentags')       " automatic tagfile generation
-"call dein#add('lambdalisue/gina.vim',               {'on_cmd': 'Gina'})
+call dein#add('lambdalisue/gina.vim',               {'on_cmd': 'Gina'})
 call dein#add('majutsushi/tagbar',                  {'on_cmd': 'TagbarToggle'})
 call dein#add('rhysd/vim-clang-format',             {'on_ft': ['c', 'cpp']})
 call dein#add('alepez/vim-llvmcov',                 {'on_ft': ['c', 'cpp']})
 call dein#add('valloric/MatchTagAlways',            {'on_ft': 'html'})
-call dein#add('amirh/HTML-AutoCloseTag')            " can't be lazy
+call dein#add('alvan/vim-closetag',                 {'on_ft': 'html'})
 call dein#add('lotabout/skim',                      {'build': './install --all', 'merged': 0})
 call dein#add('lotabout/skim.vim',                  {'depends': 'skim'})
 call dein#add('tpope/vim-abolish')                  " deal with word variants
 "call dein#add('cloudhead/neovim-fuzzy')
 "call dein#add('yuttie/comfortable-motion.vim')
+call dein#add('bounceme/poppy.vim')                 " rainbow parens (set to one level)
 
 " keybindings
 call dein#add('tpope/vim-rsi', {'on_event': s:ces}) " enable readline key mappings
 call dein#add('takac/vim-hardtime')                 " disable rapid hjkl repeat
 
 " colorschemes
-call dein#add('CallumHoward/vim-neodark')
+call dein#add('~/neodark')
 call dein#add('cocopon/iceberg.vim')
 call dein#add('mhartington/oceanic-next')
 call dein#add('w0ng/vim-hybrid')
@@ -60,6 +61,7 @@ call dein#add('sophacles/vim-processing',           {'on_ft': 'processing'})
 call dein#add('wavded/vim-stylus')                  " can't be lazy
 call dein#add('neovimhaskell/haskell-vim')          " can't be lazy
 "call dein#add('octol/vim-cpp-enhanced-highlight')   " can't be lazy
+call dein#add('tikhomirov/vim-glsl')
 call dein#add('arakashic/chromatica.nvim')   " can't be lazy
 let g:cpp_experimental_template_highlight = 1
 let g:cpp_class_scope_highlight = 1
@@ -179,7 +181,13 @@ nnoremap <silent> z] :<C-u>silent! normal! zc<CR>zjzozz
 nnoremap <silent> z[ :<C-u>silent! normal! zc<CR>zkzo[zzz
 
 " insert closing curly brace
-inoremap {<CR> {<CR>}<Esc>O
+"inoremap {<CR> {<CR>}<Esc>O
+inoremap <expr> {<Enter> <SID>CloseBracket()
+
+" substitution mappings
+nnoremap <leader>; :%s/;$/ {}
+xnoremap <leader>; :s/;$/ {}
+nnoremap <leader><Space> :%s/\s\+$//e<CR>
 
 " gita mappings
 nnoremap <silent> <leader>b :Gita browse --scheme=blame<CR>
@@ -192,7 +200,9 @@ command Bd bp\|bd #
 
 " relative number configuration
 autocmd FocusLost,InsertEnter,WinLeave ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nornu | endif
-autocmd FocusGained,InsertLeave,WinEnter ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nu rnu | endif
+autocmd FocusGained,InsertLeave,WinEnter,BufRead ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nu rnu | endif
+
+" cursorline configuration
 autocmd FocusLost,InsertEnter,WinLeave,BufWinLeave,CmdwinLeave ?* if !&wrap || &bt == 'help' | :setl nocul | endif
 autocmd FocusGained,InsertLeave,WinEnter,BufWinEnter,CmdwinEnter ?* if !&wrap || &bt == 'help'| :setl cul | endif
 
@@ -205,7 +215,7 @@ let g:netrw_browse_split = 4            " use the previous window to open file
 let g:netrw_hide = 1                    " don't show hidden files (use gh to toggle)
 let g:netrw_list_hide='^\.,\.dSYM/'
 nnoremap <silent> <Leader>\ :Lex<CR>
-cabbrev cd. <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'cd %:p:h' : 'cd.')<CR>
+cabbrev cd. <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'lcd %:p:h\|pwd' : 'cd.')<CR>
 
 " automatically save and load views
 "au BufWinLeave ?* mkview!
@@ -213,7 +223,7 @@ cabbrev cd. <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'cd %:p:h' : 'cd.')<CR>
 "autocmd BufWinLeave * if expand("%") != "" | mkview | endif
 "autocmd BufWinEnter * if expand("%") != "" | loadview | endif
 
-" shared clipboard
+" shared clipboard (too slow)
 "augroup sharedclipb
 "    au!
 "    autocmd FocusLost * wshada
@@ -279,6 +289,21 @@ set concealcursor=niv
 " allow automatic function signature expansion
 let g:neosnippet#enable_completed_snippet=1
 
+" vim-closetag config
+let g:closetag_filenames = "*.html,*.xhtml,*.phtml,*.xml,*.jsx,*.md"
+
+function! s:CloseBracket()
+    let line = getline('.')
+    if line =~# '^\s*\(struct\|class\|enum\) '
+        return "{\<Enter>};\<Esc>O"
+    elseif searchpair('(', '', ')', 'bmn', '', line('.'))
+        " Probably inside a function call. Close it off.
+        return "{\<Enter>});\<Esc>O"
+    else
+        return "{\<Enter>}\<Esc>O"
+    endif
+endfunction
+
 " gitgutter config
 set updatetime=500
 hi GitGutterAdd ctermfg=2
@@ -341,9 +366,9 @@ let g:neomake_c_enabled_makers = ['clang', 'clangtidy']
 let g:neomake_c_clangtidy_args = ['-extra-arg=-std=c99', '-checks=\*']
 let g:neomake_c_clang_args = ['-std=c99', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-g']
 let g:neomake_cpp_enabled_makers = ['clang', 'clangtidy']
-let g:neomake_cpp_clangtidy_args = ['-checks=\*', '-std=c++17',
-            \'-extra-arg=-std=c++17 -I/usr/local/opt/boost/include -I~/range-v3/include -I~/Documents/Cinder.git/include']
-let g:neomake_cpp_clang_args = ['-std=c++17', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-Wno-c++98-compat', '-g',
+let g:neomake_cpp_clangtidy_args = ['-checks=\*',
+            \'-extra-arg=-std=c++14 -I/usr/local/opt/boost/include -I~/range-v3/include -I~/Documents/Cinder.git/include']
+let g:neomake_cpp_clang_args = ['-std=c++1y', '-Wextra', '-Weverything', '-pedantic', '-Wall', '-Wno-unused-parameter', '-Wno-c++98-compat', '-g',
             \'-I/usr/local/opt/boost/include', '-I~/Documents/Cinder.git/include', '-I~/range-v3/include']
 let g:neomake_haskell_enabled_makers = ['hlint', 'ghcmod']
 
@@ -367,6 +392,12 @@ let g:tagbar_compact = 1
 
 " EnhancedDiff config
 set diffopt+=iwhite "ignore whitespace
+
+" poppy config
+au cursormoved * call PoppyInit()
+let g:poppyhigh = ['Ignore']
+let g:poppy_point_enable = 1
+"let loaded_matchparen = 1   " disable MatchParen built-in plugin
 
 " hardtime config
 let g:hardtime_default_on = 1
