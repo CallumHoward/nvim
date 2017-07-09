@@ -44,6 +44,7 @@ call dein#add('tpope/vim-abolish')                  " deal with word variants
 "call dein#add('cloudhead/neovim-fuzzy')
 "call dein#add('yuttie/comfortable-motion.vim')
 call dein#add('bounceme/poppy.vim')                 " rainbow parens (set to one level)
+call dein#add('dahu/LearnVim')
 
 " keybindings
 call dein#add('tpope/vim-rsi', {'on_event': s:ces}) " enable readline key mappings
@@ -90,7 +91,7 @@ set shiftwidth=4    " spaces to shift when re-indenting
 set tabstop=4       " number of spaces to insert when tab is pressed
 set softtabstop=4   " backspace deletes indent
 set smartindent     " indent based on filetype
-set nowrap          " don't wrap text
+"set nowrap          " don't wrap text
 set linebreak       " wrap long lines at characters in 'breakat'
 set breakindent     " wrapped text is indented
 set briopt=sbr,shift:8,min:20
@@ -111,10 +112,6 @@ set splitright      " puts new vsplit windows to the right of the current
 set splitbelow      " puts new split windows to the bottom of the current
 
 set icm=nosplit     " live preview for substitution
-
-" smoother scrolling
-"map <ScrollWheelDown> <C-E>
-"map <ScrollWheelUp> <C-Y>
 
 set fcs=fold:-      " verticle split is just bg color
 set foldcolumn=0    " visual representation of folds
@@ -143,9 +140,9 @@ autocmd BufNewFile,BufFilePre,BufRead *.tem setlocal filetype=cpp
 "set lazyredraw
 "autocmd VimResized,FocusGained * redraw
 
-" wrapped line movement mappings
-nnoremap <expr> j v:count ? 'j' : 'gj'
-nnoremap <expr> k v:count ? 'k' : 'gk'
+" wrapped line movement mappings (adds larger jumps to jumplist)
+nnoremap <expr> j v:count > 5 ? (v:count > 5 ? "m'" . v:count : '') . 'j' : 'gj'
+nnoremap <expr> k v:count > 5 ? (v:count > 5 ? "m'" . v:count : '') . 'k' : 'gk'
 
 tnoremap <C-A>o <C-\><C-N><C-W><C-W>
 
@@ -188,9 +185,11 @@ inoremap <expr> {<Enter> <SID>CloseBracket()
 nnoremap <leader>; :%s/;$/ {}
 xnoremap <leader>; :s/;$/ {}
 nnoremap <leader><Space> :%s/\s\+$//e<CR>
+nnoremap <leader>s :%s///g<Left><Left>
+xnoremap <leader>s :s///g<Left><Left>
 
-" gita mappings
-nnoremap <silent> <leader>b :Gita browse --scheme=blame<CR>
+" gina mappings
+nnoremap <silent> <leader>b :Gina browse : --scheme=blame<CR>
 
 " dot command works on ranges
 xnoremap . :normal .<CR>
@@ -203,8 +202,8 @@ autocmd FocusLost,InsertEnter,WinLeave ?* if &ma && &ft !~ 'markdown\|text' && &
 autocmd FocusGained,InsertLeave,WinEnter,BufRead ?* if &ma && &ft !~ 'markdown\|text' && &bt != 'nofile' | :setl nu rnu | endif
 
 " cursorline configuration
-autocmd FocusLost,InsertEnter,WinLeave,BufWinLeave,CmdwinLeave ?* if !&wrap || &bt == 'help' | :setl nocul | endif
-autocmd FocusGained,InsertLeave,WinEnter,BufWinEnter,CmdwinEnter ?* if !&wrap || &bt == 'help'| :setl cul | endif
+autocmd FocusLost,InsertEnter,WinLeave,BufWinLeave,CmdwinLeave :setl nocul | endif
+autocmd FocusGained,InsertLeave,WinEnter,BufWinEnter,CmdwinEnter :setl cul | endif
 
 " netrw filebrowser config
 let g:netrw_winsize = -28               " absolute width of netrw window
@@ -214,14 +213,34 @@ let g:netrw_sort_sequence = '[\/]$,*'   " sort so directories on the top, files 
 let g:netrw_browse_split = 4            " use the previous window to open file
 let g:netrw_hide = 1                    " don't show hidden files (use gh to toggle)
 let g:netrw_list_hide='^\.,\.dSYM/'
-nnoremap <silent> <Leader>\ :Lex<CR>
+nnoremap <silent> <Leader>\ :call ToggleNetrw()<CR>
 cabbrev cd. <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'lcd %:p:h\|pwd' : 'cd.')<CR>
 
-" automatically save and load views
+let g:netrw_is_open=0
+function! ToggleNetrw()
+    if g:netrw_is_open
+        let i = bufnr("$")
+        while (i >= 1)
+            if (getbufvar(i, "&filetype") == "netrw")
+                silent exe "bwipeout " . i
+            endif
+            let i-=1
+        endwhile
+        let g:netrw_is_open=0
+    else
+        let g:netrw_is_open=1
+        silent Lexplore
+    endif
+endfunction
+
+" automatically save and load views (including cursor positions and folds)
 "au BufWinLeave ?* mkview!
 "au BufWinEnter ?* silent! loadview
 "autocmd BufWinLeave * if expand("%") != "" | mkview | endif
 "autocmd BufWinEnter * if expand("%") != "" | loadview | endif
+
+" jump to the previous cursor position in the file
+au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 
 " shared clipboard (too slow)
 "augroup sharedclipb
@@ -349,7 +368,7 @@ let g:clang_format#style_options = {
 let g:chromatica#libclang_path = '/usr/local/opt/llvm/lib/libclang.dylib'
 
 " neomake config
-autocmd! BufWritePost * if &ft == 'rust' | Neomake! cargo | else | Neomake | endif
+"autocmd! BufWritePost * if &ft == 'rust' | Neomake! cargo | else | Neomake | endif
 hi NeomakeError cterm=underline
 hi NeomakeWarning cterm=underline
 hi NeomakeInfo cterm=underline
@@ -390,14 +409,13 @@ autocmd InsertLeave * echo ""
 let g:tagbar_iconchars = ['+', '-']
 let g:tagbar_compact = 1
 
-" EnhancedDiff config
+" diff config
 set diffopt+=iwhite "ignore whitespace
 
 " poppy config
-au cursormoved * call PoppyInit()
+au CursorMoved,CursorMovedI * call PoppyInit()
 let g:poppyhigh = ['Ignore']
 let g:poppy_point_enable = 1
-"let loaded_matchparen = 1   " disable MatchParen built-in plugin
 
 " hardtime config
 let g:hardtime_default_on = 1
